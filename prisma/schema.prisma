@@ -1,0 +1,372 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Subscription {
+  id               Int                @id @default(autoincrement())
+  userId           Int                @unique
+  status           SubscriptionStatus
+  planType         SubscriptionPlan
+  priceId          String
+  trialEnd         DateTime?
+  currentPeriodEnd DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  user             User               @relation(fields: [userId], references: [id])
+}
+
+model User {
+  id                 Int           @id @default(autoincrement())
+  name               String
+  email              String        @unique
+  password           String
+  role               UserRole      @default(RESTAURANT_ADMIN)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  trialEnd           DateTime?
+  emailVerified      Boolean       @default(false)
+  emailVerificationToken  String?
+  emailVerificationExpiry DateTime?
+  passwordResetToken         String?
+  passwordResetExpiry   DateTime?
+  phoneNumber        String?
+  addresses          Address[]
+  orders             Order[]
+  managedRestaurants Restaurant[]
+  subscription       Subscription?
+  managedBranches    Branch[]      @relation("BranchToUser")
+  pushSubscriptions  PushSubscription[]
+}
+
+model Restaurant {
+  id              Int              @id @default(autoincrement())
+  name            String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  adminId         Int
+  logo            String?
+  iconPaths       Json? 
+  slug            String?          @unique
+  slugChanged     Boolean          @default(false)
+  branches        Branch[]
+  deliverySetting DeliverySetting?
+  orders          Order[]
+  admin           User             @relation(fields: [adminId], references: [id])
+}
+
+model Branch {
+  id              Int                    @id @default(autoincrement())
+  name            String
+  restaurantId    Int
+  address         String?
+  latitude        Float?
+  longitude       Float?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  image           String?
+  deliveryType    BranchDeliveryType
+  featured        Boolean                @default(false)
+  busyUntil       DateTime?
+  isBusy          Boolean                @default(false)
+  addonItemStates AddonItemBranchState[]
+  restaurant      Restaurant             @relation(fields: [restaurantId], references: [id])
+  menuCategories  MenuCategory[]
+  menuItemStates  MenuItemBranchState[]
+  orders          Order[]
+  regularHours    RegularHours[]
+  specialHours    SpecialHours[]
+  tables          Table[]
+  managers        User[]                 @relation("BranchToUser")
+}
+
+model RegularHours {
+  id        Int      @id @default(autoincrement())
+  branchId  Int
+  day       String
+  openTime  String[]
+  closeTime String[]
+  isClosed  Boolean  @default(false)
+  branch    Branch   @relation(fields: [branchId], references: [id])
+}
+
+model SpecialHours {
+  id        Int      @id @default(autoincrement())
+  branchId  Int
+  date      DateTime
+  openTime  String[]
+  closeTime String[]
+  isClosed  Boolean  @default(false)
+  reason    String?
+  branch    Branch   @relation(fields: [branchId], references: [id])
+}
+
+model MenuCategory {
+  id        Int        @id @default(autoincrement())
+  name      String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  branchId  Int
+  branch    Branch     @relation(fields: [branchId], references: [id])
+  menuItems MenuItem[]
+  order Int @default(0)
+}
+
+model MenuItem {
+  id              Int                   @id @default(autoincrement())
+  name            String
+  image           String?
+  price           Float
+  isPopular       Boolean               @default(false)
+  isFeatured      Boolean               @default(false)
+  isRecommended   Boolean               @default(false)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  menuCategoryId  Int
+  menuCategory    MenuCategory          @relation(fields: [menuCategoryId], references: [id])
+  branchStates    MenuItemBranchState[]
+  orderItems      OrderItem[]
+  addonCategories AddonCategory[]       @relation("AddonCategoryToMenuItem")
+  order Int @default(0)
+}
+
+model MenuItemBranchState {
+  id            Int       @id @default(autoincrement())
+  menuItemId    Int
+  branchId      Int
+  active        Boolean   @default(true)
+  inactiveUntil DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  branch        Branch    @relation(fields: [branchId], references: [id])
+  menuItem      MenuItem  @relation(fields: [menuItemId], references: [id])
+
+  @@unique([menuItemId, branchId])
+}
+
+model AddonCategory {
+  id          Int                @id @default(autoincrement())
+  name        String
+  type        AddonSelectionType
+  description String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  maxAllowed  Int?
+  addonItems  AddonItem[]
+  menuItems   MenuItem[]         @relation("AddonCategoryToMenuItem")
+  order       Int               @default(0) 
+}
+
+model AddonItem {
+  id              Int                    @id @default(autoincrement())
+  name            String
+  price           Float
+  addonCategoryId Int
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  addonCategory   AddonCategory          @relation(fields: [addonCategoryId], references: [id])
+  branchStates    AddonItemBranchState[]
+  orderItems      OrderItem[]            @relation("AddonItemToOrderItem")
+  order       Int               @default(0) 
+}
+
+model AddonItemBranchState {
+  id          Int       @id @default(autoincrement())
+  addonItemId Int
+  branchId    Int
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  addonItem   AddonItem @relation(fields: [addonItemId], references: [id])
+  branch      Branch    @relation(fields: [branchId], references: [id])
+
+  @@unique([addonItemId, branchId])
+}
+
+model Order {
+  id                   Int               @id @default(autoincrement())
+  restaurantId         Int
+  branchId             Int
+  customerName         String
+  status               OrderStatus       @default(PENDING)
+  deliveryCharge       Float             @default(0)
+  deliveryDiscount     Float             @default(0)
+  orderDiscount        Float             @default(0)
+  platformFee          Float             @default(0)
+  paymentProcessingFee Float             @default(0)
+  total                Float             @default(0)
+  deliveryType         OrderDeliveryType @default(DELIVERY)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  customerPhone        String?
+  tableNumber          String?
+  userId               Int
+  branch               Branch            @relation(fields: [branchId], references: [id])
+  restaurant           Restaurant        @relation(fields: [restaurantId], references: [id])
+  user                 User              @relation(fields: [userId], references: [id])
+  orderItems           OrderItem[]
+}
+
+model OrderItem {
+  id         Int         @id @default(autoincrement())
+  orderId    Int
+  menuItemId Int
+  quantity   Int
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  menuItem   MenuItem    @relation(fields: [menuItemId], references: [id])
+  order      Order       @relation(fields: [orderId], references: [id])
+  addons     AddonItem[] @relation("AddonItemToOrderItem")
+}
+
+model DeliverySetting {
+  id                    Int        @id @default(autoincrement())
+  restaurantId          Int        @unique
+  baseCharge            Float
+  baseDistance          Float
+  additionalChargePerKm Float
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  restaurant            Restaurant @relation(fields: [restaurantId], references: [id])
+}
+
+model Discount {
+  id             Int          @id @default(autoincrement())
+  code           String?      @unique
+  discountType   DiscountType
+  value          Float
+  minOrderAmount Float?
+  isActive       Boolean      @default(true)
+  startDate      DateTime?
+  endDate        DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  B1G1Offer      B1G1Offer[]
+}
+
+model B1G1Offer {
+  id             Int      @id @default(autoincrement())
+  discountId     Int
+  requiredItemId Int
+  freeItemId     Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  discount       Discount @relation(fields: [discountId], references: [id])
+}
+
+model PlatformFee {
+  id            Int      @id @default(autoincrement())
+  baseFee       Float
+  percentageFee Float
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model PaymentProcessingFee {
+  id            Int      @id @default(autoincrement())
+  baseFee       Float
+  percentageFee Float
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Address {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  address    String
+  unitNumber String?
+  latitude   Float
+  longitude  Float
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, address, unitNumber])
+}
+
+model Table {
+  id        Int      @id @default(autoincrement())
+  number    String
+  capacity  Int
+  branchId  Int
+  qrCode    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  branch    Branch   @relation(fields: [branchId], references: [id])
+
+  @@unique([branchId, number])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    Int
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model TestUser {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  RESTAURANT_ADMIN
+  BRANCH_MANAGER
+  CUSTOMER
+}
+
+enum SubscriptionPlan {
+  STARTER
+  GROWTH
+  DOMINATE
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  CANCELLED
+}
+
+enum AddonSelectionType {
+  MULTIPLE_SELECTION
+  SINGLE_SELECTION
+}
+
+enum BranchDeliveryType {
+  DELIVERY
+  PICKUP
+  BOTH
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY_FOR_PICKUP
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum DiscountType {
+  CODE
+  AUTOMATIC
+  B1G1
+}
+
+enum OrderDeliveryType {
+  DELIVERY
+  PICKUP
+  DINE_IN
+}

@@ -1,101 +1,209 @@
+import { MapPin, Package, ShoppingBag } from "lucide-react";
 import Image from "next/image";
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+export default function Component() {
+  return (
+    <div className="flex min-h-screen flex-col lg:flex-row">
+      <div className="flex-1 p-4 lg:p-8">
+        <div className="mx-auto max-w-4xl">
+          <div className="flex items-start gap-4">
+            <div className="h-16 w-16 overflow-hidden rounded-lg">
+              <Image
+                alt="Restaurant logo"
+                className="aspect-square object-cover"
+                height="64"
+                src="/placeholder.svg"
+                width="64"
+              />
+            </div>
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold">Mat Salleh</h1>
+              <p className="text-sm text-muted-foreground">
+                Select your order type and branch
+              </p>
+              <div className="mt-4">
+                <RadioGroup defaultValue="delivery" className="flex gap-4">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="pickup" id="pickup" />
+                    <Label htmlFor="pickup">Pickup</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="delivery" id="delivery" />
+                    <Label htmlFor="delivery">Delivery</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              <div className="mt-4">
+                <Label>Delivery Address</Label>
+                <div className="mt-1.5 flex gap-2">
+                  <Select>
+                    <SelectTrigger className="w-[300px]">
+                      <SelectValue placeholder="Mat Salleh Taman..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="branch1">
+                        Mat Salleh Taman Branch
+                      </SelectItem>
+                      <SelectItem value="branch2">
+                        Mat Salleh City Branch
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" className="gap-2">
+                    <MapPin className="h-4 w-4" />
+                    Add Address
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <ScrollArea className="mt-8">
+            <div className="grid gap-8">
+              <section>
+                <h2 className="text-xl font-bold">Air</h2>
+                <div className="mt-4 grid gap-4">
+                  <MenuItem name="Hot Chocolate" price="$8.00" />
+                  <MenuItem name="Sirap Bandung" price="$6.00" />
+                  <MenuItem name="Limonade" price="$6.00" />
+                </div>
+              </section>
+              <section>
+                <h2 className="text-xl font-bold">Dessert</h2>
+                <div className="mt-4 grid gap-4">
+                  <MenuItem name="Apple Pie" price="$12.00" />
+                </div>
+              </section>
+              <section>
+                <h2 className="text-xl font-bold">Nasi Lemak</h2>
+                <div className="mt-4 grid gap-4">
+                  <MenuItem
+                    name="Set C - Rendang Chicken + Sambal Udang"
+                    price="$15.00"
+                    imageSrc="/placeholder.svg"
+                  />
+                  <MenuItem
+                    name="Set B - Sambal Ikan Bilis + Rendang Chicken"
+                    price="$12.00"
+                    imageSrc="/placeholder.svg"
+                  />
+                  <MenuItem
+                    name="Set A - Sambal Ikan Bilis"
+                    price="$10.00"
+                    imageSrc="/placeholder.svg"
+                  />
+                  <MenuItem name="Nasi D" price="$12.00" />
+                </div>
+              </section>
+            </div>
+          </ScrollArea>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+      </div>
+      <div className="w-full border-t lg:w-[400px] lg:border-l lg:border-t-0">
+        <Card className="h-full rounded-none border-0">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShoppingBag className="h-5 w-5" />
+              Your Order
+              <span className="ml-auto text-sm font-normal text-muted-foreground">
+                0 items
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4">
+              <div className="flex gap-2">
+                <Input placeholder="Discount Code" />
+                <Button className="shrink-0">Apply</Button>
+              </div>
+              <Separator />
+              <div className="grid gap-2">
+                <div className="flex justify-between">
+                  <span className="text-sm">Subtotal</span>
+                  <span className="text-sm">$0.00</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Platform Fee</span>
+                  <span className="text-sm">$1.00</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Payment Processing</span>
+                  <span className="text-sm">$1.00</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Delivery Fee</span>
+                  <span className="text-sm">Calculating...</span>
+                </div>
+              </div>
+              <Separator />
+              <div className="flex justify-between font-bold">
+                <span>Total</span>
+                <span>$2.00</span>
+              </div>
+              <Button className="w-full" size="lg">
+                Checkout
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      <Button
+        className="fixed bottom-4 right-4 gap-2"
+        size="lg"
+        variant="outline"
+      >
+        <Package className="h-4 w-4" />
+        Install App
+      </Button>
+    </div>
+  );
+}
+
+function MenuItem({
+  name,
+  price,
+  imageSrc,
+}: {
+  name: string;
+  price: string;
+  imageSrc?: string;
+}) {
+  return (
+    <div className="flex items-center gap-4">
+      {imageSrc && (
+        <div className="h-16 w-16 overflow-hidden rounded-lg">
           <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+            alt={name}
+            className="aspect-square object-cover"
+            height="64"
+            src={imageSrc}
+            width="64"
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        </div>
+      )}
+      <div className="flex flex-1 items-center justify-between">
+        <div>
+          <h3 className="font-medium">{name}</h3>
+          <p className="text-sm text-muted-foreground">{price}</p>
+        </div>
+        <Button variant="ghost" size="icon">
+          +
+        </Button>
+      </div>
     </div>
   );
 }
